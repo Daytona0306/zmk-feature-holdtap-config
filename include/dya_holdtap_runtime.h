@@ -29,6 +29,9 @@ struct dya_ht_timing {
 int dya_ht_get(int slot, struct dya_ht_timing *out);
 const struct device *dya_ht_dev(int slot);
 
+/* 明示保存・破棄 (MEMORY運用の永続化口)。custom-settings無効時は -ENOSYS。 */
+int dya_ht_save(void);
+int dya_ht_discard(void);
 int dya_ht_set_tapping(int slot, int32_t ms);
 int dya_ht_set_quick_tap(int slot, int32_t ms);
 int dya_ht_set_flavor(int slot, int32_t flavor);
