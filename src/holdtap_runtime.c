@@ -135,7 +135,7 @@ static void dya_ht_seed_from_dt(void) {
 
 /* ---- Phase2b: custom-settings 登録・購読 ---- */
 
-#define DYA_HT_SUBSYS "dya_ht"
+#define DYA_HT_SUBSYS "dya__holdtap"
 
 enum dya_ht_field {
     DYA_HT_F_TAPPING = 0,

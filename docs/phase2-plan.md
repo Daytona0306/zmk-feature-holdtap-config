@@ -33,7 +33,7 @@ kscan/debounce は本Phaseでは触らない。
   Phase2a の `select` は付けない)。`set_default` には static/BSS のアドレスのみ渡す
   (スタック一時変数禁止)。毎打鍵PERSIST禁止 (MEMORY運用+明示Save)。
 - 終了条件: Phase2b conf でビルドが通り、Studio汎用 AdvancedSettings に
-  `dya_ht` 8キーが出現すること。
+  `dya__holdtap` 8キーが出現すること。
 
 ## 3. ロールバック
 
