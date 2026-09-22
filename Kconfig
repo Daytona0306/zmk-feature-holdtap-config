@@ -1,0 +1,58 @@
+config ZMK_HOLDTAP_RUNTIME
+    bool "Hold-tap timing runtime adjustment (DYA)"
+    help
+      Hold-tap (&mt / &lt) tapping-term / quick-tap / flavor 等を
+      custom-settings 経由で実行時に調整するための土台。
+      Phase2a (RAMのみ) では custom-settings 不要。
+      Phase2b (永続化) で ZMK_CUSTOM_SETTINGS が必要。
+
+if ZMK_HOLDTAP_RUNTIME
+
+config ZMK_HOLDTAP_RUNTIME_STUDIO_RPC
+    bool "Hold-tap timing Studio RPC"
+    default y
+    depends on ZMK_STUDIO
+    help
+      DYA Studio から読み書きするための RPC。Phase3 で実装。
+
+config ZMK_HOLDTAP_MT_TAPPING_TERM_MS
+    int "&mt tapping-term-ms default (ms)"
+    default 180
+    range 10 1000
+
+config ZMK_HOLDTAP_MT_QUICK_TAP_MS
+    int "&mt quick-tap-ms default (ms, -1=disabled)"
+    default 300
+    range -1 1000
+
+config ZMK_HOLDTAP_MT_FLAVOR
+    int "&mt flavor default (0=hold-preferred 1=balanced 2=tap-preferred 3=tap-unless-interrupted)"
+    default 1
+    range 0 3
+
+config ZMK_HOLDTAP_MT_REQUIRE_PRIOR_IDLE_MS
+    int "&mt require-prior-idle-ms default (ms, -1=disabled)"
+    default -1
+    range -1 1000
+
+config ZMK_HOLDTAP_LT_TAPPING_TERM_MS
+    int "&lt tapping-term-ms default (ms)"
+    default 180
+    range 10 1000
+
+config ZMK_HOLDTAP_LT_QUICK_TAP_MS
+    int "&lt quick-tap-ms default (ms, -1=disabled)"
+    default 300
+    range -1 1000
+
+config ZMK_HOLDTAP_LT_FLAVOR
+    int "&lt flavor default (0=hold-preferred 1=balanced 2=tap-preferred 3=tap-unless-interrupted)"
+    default 1
+    range 0 3
+
+config ZMK_HOLDTAP_LT_REQUIRE_PRIOR_IDLE_MS
+    int "&lt require-prior-idle-ms default (ms, -1=disabled)"
+    default -1
+    range -1 1000
+
+endif # ZMK_HOLDTAP_RUNTIME

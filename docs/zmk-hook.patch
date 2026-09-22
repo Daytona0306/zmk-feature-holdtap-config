@@ -1,0 +1,72 @@
+対象: cormoran/zmk (main+dya) `app/src/behaviors/behavior_hold_tap.c`
+確定事実: configはプレーン構造体 (int×4 + enum flavor + bool×4 + size_t len + int32_t* ×2組、
+flexible arrayなし)。`active_hold_tap.config` はポインタ保持、`store_hold_tap` は
+ポインタ保存のみ (値コピーなし)。よって effective設定は press期間中有効な
+static領域に置くこと。関数内複合リテラルのアドレス渡しは禁止 (ダングリング)。
+
+--- a/app/src/behaviors/behavior_hold_tap.c
++++ b/app/src/behaviors/behavior_hold_tap.c
+@@ top (include付近)
++/* DYA hold-tap runtime hook (Phase2a). weak 既定 = 素の DT 動作。
++ * strong 実装 (dya_ht_resolve) は zmk-feature-holdtap-config が提供する。
++ * モジュール無しでも単体ビルド可。Kconfig=n では下記全て無効。 */
++#if defined(CONFIG_ZMK_HOLDTAP_RUNTIME)
++__weak bool dya_ht_resolve(const struct device *dev, int32_t *tapping, int32_t *quick,
++                           int32_t *flavor, int32_t *idle) {
++    ARG_UNUSED(dev);
++    ARG_UNUSED(tapping);
++    ARG_UNUSED(quick);
++    ARG_UNUSED(flavor);
++    ARG_UNUSED(idle);
++    return false;
++}
++
++/* per-node effective領域。configはプレーン構造体のためシャローコピーで足りる
++ * (positionsポインタはDT静的配列をそのまま参照。Phase2aではpositions不変)。
++ * undecidedは単一しか存在できないため、ノード毎1面で足りる。
++ * 同一ノードの同時2押しは後勝ち (tak式と同一の取捨選択)。 */
++static struct behavior_hold_tap_config dya_ht_eff[2];
++
++static const struct behavior_hold_tap_config *
++dya_ht_effective(const struct behavior_hold_tap_config *cfg, const struct device *dev) {
++    int idx = -1;
++    if (dev == DEVICE_DT_GET(DT_NODELABEL(mt))) {
++        idx = 0;
++    } else if (dev == DEVICE_DT_GET(DT_NODELABEL(lt))) {
++        idx = 1;
++    }
++    if (idx < 0) {
++        return cfg; /* mt/lt 以外の hold-tap (例: mg_ht、lt_to_layer_0) は DT のまま */
++    }
++    int32_t t = 0, q = 0, f = 0, i = 0;
++    if (!dya_ht_resolve(dev, &t, &q, &f, &i)) {
++        return cfg;
++    }
++    if (f < 0 || f > 3) {
++        return cfg; /* fail-closed。flavor範囲0-3外はDTにfallback */
++    }
++    dya_ht_eff[idx] = *cfg;
++    dya_ht_eff[idx].tapping_term_ms = t;
++    dya_ht_eff[idx].quick_tap_ms = q;
++    dya_ht_eff[idx].flavor = (enum flavor)f;
++    dya_ht_eff[idx].require_prior_idle_ms = i;
++    return &dya_ht_eff[idx];
++}
++#endif
+@@ on_hold_tap_binding_pressed (undecidedガード後・store直前。順序固定)
++    /* NOTE: 挿入位置は `if (undecided_hold_tap != NULL) return OPAQUE;` の後、
++     * `store_hold_tap(...)` の直前。ガード前に置くと拒否される2押し目が
++     * dya_ht_eff[idx] を上書きし判定中を破壊するため禁止。 */
+     const struct device *dev = zmk_behavior_get_binding(binding->behavior_dev);
+     const struct behavior_hold_tap_config *cfg = dev->config;
++    /* DYA Phase2a: per-press effective値を static領域にラッチ。
++     * 以降は hold_tap->config (ラッチ済みポインタ) 経由でのみ参照する。 */
++#if defined(CONFIG_ZMK_HOLDTAP_RUNTIME)
++    cfg = dya_ht_effective(cfg, dev);
++#endif
+     struct active_hold_tap *hold_tap =
+         store_hold_tap(&event, binding->param1, binding->param2, cfg);
+@@ timer 残量計算 (同一関数内)
+-    int32_t tapping_term_ms_left = (hold_tap->timestamp + cfg->tapping_term_ms) - k_uptime_get();
++    int32_t tapping_term_ms_left =
++        (hold_tap->timestamp + hold_tap->config->tapping_term_ms) - k_uptime_get();
