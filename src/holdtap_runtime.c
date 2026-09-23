@@ -89,7 +89,7 @@ static int32_t dya_ht_flavor_from_str(const char *s, int32_t fallback) {
     return fallback; /* 未知値 */
 }
 
-/* DT既定seed。prop無ければKconfig既定。idleのDT prop名は未確定のためKconfig値。 */
+/* DT既定seed。prop無ければKconfig既定。 */
 static void dya_ht_seed_from_dt(void) {
 #if DT_NODE_HAS_PROP(DYA_HT_MT_NODE, tapping_term_ms)
     s_staged[DYA_HT_MT].tapping_term_ms = (int32_t)DT_PROP(DYA_HT_MT_NODE, tapping_term_ms);
@@ -107,7 +107,12 @@ static void dya_ht_seed_from_dt(void) {
 #else
     s_staged[DYA_HT_MT].flavor = CONFIG_ZMK_HOLDTAP_MT_FLAVOR;
 #endif
+#if DT_NODE_HAS_PROP(DYA_HT_MT_NODE, require_prior_idle_ms)
+    s_staged[DYA_HT_MT].require_prior_idle_ms =
+        (int32_t)DT_PROP(DYA_HT_MT_NODE, require_prior_idle_ms);
+#else
     s_staged[DYA_HT_MT].require_prior_idle_ms = CONFIG_ZMK_HOLDTAP_MT_REQUIRE_PRIOR_IDLE_MS;
+#endif
 
 #if DT_NODE_HAS_PROP(DYA_HT_LT_NODE, tapping_term_ms)
     s_staged[DYA_HT_LT].tapping_term_ms = (int32_t)DT_PROP(DYA_HT_LT_NODE, tapping_term_ms);
@@ -125,7 +130,12 @@ static void dya_ht_seed_from_dt(void) {
 #else
     s_staged[DYA_HT_LT].flavor = CONFIG_ZMK_HOLDTAP_LT_FLAVOR;
 #endif
+#if DT_NODE_HAS_PROP(DYA_HT_LT_NODE, require_prior_idle_ms)
+    s_staged[DYA_HT_LT].require_prior_idle_ms =
+        (int32_t)DT_PROP(DYA_HT_LT_NODE, require_prior_idle_ms);
+#else
     s_staged[DYA_HT_LT].require_prior_idle_ms = CONFIG_ZMK_HOLDTAP_LT_REQUIRE_PRIOR_IDLE_MS;
+#endif
 
     s_live[DYA_HT_MT] = s_staged[DYA_HT_MT];
     s_live[DYA_HT_LT] = s_staged[DYA_HT_LT];
