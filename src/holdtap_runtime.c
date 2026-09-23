@@ -162,6 +162,25 @@ static const char *const s_keys[DYA_HT_COUNT][DYA_HT_F_COUNT] = {
         },
 };
 
+/* flavor は Studio でドロップダウン選択させるため OPTIONS制約。
+ * 許容値 0-3 は従来の RANGE と同一なので保存値の移行不要。 */
+static const struct zmk_custom_setting_value s_flavor_values[] = {
+    {.type = ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32, .int32_value = 0},
+    {.type = ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32, .int32_value = 1},
+    {.type = ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32, .int32_value = 2},
+    {.type = ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32, .int32_value = 3},
+};
+static const char *const s_flavor_labels[] = {
+    "hold-preferred (0)",
+    "balanced (1)",
+    "tap-preferred (2)",
+    "tap-unless-interrupted (3)",
+};
+static const struct zmk_custom_setting_constraint s_flavor_constraint = {
+    .type = ZMK_CUSTOM_SETTING_CONSTRAINT_OPTIONS,
+    .options = {.values = s_flavor_values, .labels = s_flavor_labels, .count = 4},
+};
+
 ZMK_CUSTOM_SETTING_DEFINE_WITH_CONSTRAINTS(
     dya_ht_mt_tapping_term_ms, DYA_HT_SUBSYS, "mt_tapping_term_ms",
     ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32,
@@ -178,7 +197,7 @@ ZMK_CUSTOM_SETTING_DEFINE_WITH_CONSTRAINTS(
     dya_ht_mt_flavor, DYA_HT_SUBSYS, "mt_flavor", ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32,
     ZMK_CUSTOM_SETTING_VALUE_INT32(CONFIG_ZMK_HOLDTAP_MT_FLAVOR),
     ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC, ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
-    ZMK_CUSTOM_SETTING_PERMISSION_SECURE, ZMK_CUSTOM_SETTING_RANGE_INT32(0, 3));
+    ZMK_CUSTOM_SETTING_PERMISSION_SECURE, s_flavor_constraint);
 ZMK_CUSTOM_SETTING_DEFINE_WITH_CONSTRAINTS(
     dya_ht_mt_require_prior_idle_ms, DYA_HT_SUBSYS, "mt_require_prior_idle_ms",
     ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32,
@@ -201,7 +220,7 @@ ZMK_CUSTOM_SETTING_DEFINE_WITH_CONSTRAINTS(
     dya_ht_lt_flavor, DYA_HT_SUBSYS, "lt_flavor", ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32,
     ZMK_CUSTOM_SETTING_VALUE_INT32(CONFIG_ZMK_HOLDTAP_LT_FLAVOR),
     ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC, ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
-    ZMK_CUSTOM_SETTING_PERMISSION_SECURE, ZMK_CUSTOM_SETTING_RANGE_INT32(0, 3));
+    ZMK_CUSTOM_SETTING_PERMISSION_SECURE, s_flavor_constraint);
 ZMK_CUSTOM_SETTING_DEFINE_WITH_CONSTRAINTS(
     dya_ht_lt_require_prior_idle_ms, DYA_HT_SUBSYS, "lt_require_prior_idle_ms",
     ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32,
